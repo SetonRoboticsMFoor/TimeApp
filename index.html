@@ -6,7 +6,6 @@
     <title>US World Clock</title>
     <style>
         :root {
-            /* Light Mode Variables */
             --bg-color: #f4f4f4;
             --text-color: #222222;
             --border-color: #444444;
@@ -15,18 +14,17 @@
         }
 
         body.dark-mode {
-            /* Dark Mode Variables */
-            --bg-color: #101015; /* Deeper black */
-            --text-color: #a0eaff; /* The new Light Blue text */
-            --border-color: #a0eaff; /* Matching light blue border */
-            --glow: 0 0 25px rgba(160, 234, 255, 0.7); /* Soft Light Blue Glow */
+            --bg-color: #101015; 
+            --text-color: #a0eaff; /* Light Blue */
+            --border-color: #a0eaff; 
+            --glow: 0 0 25px rgba(160, 234, 255, 0.7); /* Light Blue Glow */
             --control-bg: #1a1a22;
         }
 
         body {
             background-color: var(--bg-color);
             color: var(--text-color);
-            transition: all 0.4s ease; /* Smoother fade */
+            transition: all 0.4s ease;
             display: flex;
             flex-direction: column;
             justify-content: center;
@@ -63,7 +61,7 @@
             gap: 15px;
             flex-direction: column;
             align-items: center;
-            width: 300px;
+            width: 320px;
         }
 
         select, button {
@@ -76,22 +74,85 @@
             background: var(--control-bg);
             color: var(--text-color);
             font-family: inherit;
-            transition: background 0.3s;
         }
 
-        select:focus, button:focus {
-            outline: 2px solid var(--text-color);
-            outline-offset: 2px;
-        }
-
-        /* Responsive design for smaller screens */
         @media (max-width: 600px) {
-            #clock {
-                font-size: 3rem;
-                padding: 15px 20px;
-            }
+            #clock { font-size: 3rem; }
         }
     </style>
 </head>
-<body class="dark-mode"> <div id="clock-container">
+<body class="dark-mode">
+
+    <div id="clock-container">
         <div id="clock">00:00:00</div>
+        <div id="zone-display">My Local Time</div>
+    </div>
+
+    <div class="controls">
+        <select id="timezoneSelector">
+            <option value="local">My Local Time</option>
+            <optgroup label="US Standard Time Zones">
+                <option value="America/New_York">Eastern Time (ET)</option>
+                <option value="America/Chicago">Central Time (CT)</option>
+                <option value="America/Denver">Mountain Time (MT)</option>
+                <option value="America/Phoenix">Mountain Time (AZ - No DST)</option>
+                <option value="America/Los_Angeles">Pacific Time (PT)</option>
+            </optgroup>
+            <optgroup label="US Non-Contiguous Zones">
+                <option value="America/Anchorage">Alaska Time (AKT)</option>
+                <option value="Pacific/Honolulu">Hawaii Standard Time (HST)</option>
+            </optgroup>
+        </select>
+
+        <button id="modeToggle">Switch to Light Mode</button>
+    </div>
+
+    <script>
+        const clockElement = document.getElementById('clock');
+        const zoneDisplayElement = document.getElementById('zone-display');
+        const timezoneSelector = document.getElementById('timezoneSelector');
+        const btn = document.getElementById('modeToggle');
+
+        function updateClock() {
+            const now = new Date();
+            const selectedZone = timezoneSelector.value;
+
+            let timeOptions = {
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit',
+                hour12: true 
+            };
+            
+            if (selectedZone !== "local") {
+                timeOptions.timeZone = selectedZone;
+            }
+
+            clockElement.textContent = now.toLocaleTimeString('en-US', timeOptions);
+
+            // Update the display name of the zone
+            if (selectedZone === "local") {
+                zoneDisplayElement.textContent = "My Local Time";
+            } else {
+                const zoneNameOptions = { timeZone: selectedZone, timeZoneName: 'long' };
+                const formatter = new Intl.DateTimeFormat('en-US', zoneNameOptions);
+                const parts = formatter.formatToParts(now);
+                const tzName = parts.find(part => part.type === 'timeZoneName').value;
+                zoneDisplayElement.textContent = tzName;
+            }
+        }
+
+        setInterval(updateClock, 1000);
+        updateClock();
+
+        timezoneSelector.addEventListener('change', updateClock);
+
+        btn.addEventListener('click', () => {
+            document.body.classList.toggle('dark-mode');
+            btn.textContent = document.body.classList.contains('dark-mode') 
+                ? "Switch to Light Mode" 
+                : "Switch to Dark Mode";
+        });
+    </script>
+</body>
+</html>
