@@ -3,9 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Simple Clock</title>
+    <title>World Clock App</title>
     <style>
-        /* Default "Normal" Mode Styles */
         :root {
             --bg-color: #f0f0f0;
             --text-color: #333333;
@@ -13,7 +12,6 @@
             --glow: none;
         }
 
-        /* "Dark" Mode Styles */
         body.dark-mode {
             --bg-color: #1a1a1a;
             --text-color: #00ffcc;
@@ -24,7 +22,7 @@
         body {
             background-color: var(--bg-color);
             color: var(--text-color);
-            transition: all 0.3s ease; /* Makes the transition smooth */
+            transition: all 0.3s ease;
             display: flex;
             flex-direction: column;
             justify-content: center;
@@ -35,21 +33,29 @@
         }
 
         #clock {
-            font-size: 5rem;
+            font-size: 4rem;
             border: 2px solid var(--border-color);
             padding: 20px;
             border-radius: 10px;
             box-shadow: var(--glow);
             margin-bottom: 20px;
+            text-align: center;
         }
 
-        button {
-            padding: 10px 20px;
+        .controls {
+            display: flex;
+            gap: 10px;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        select, button {
+            padding: 10px;
             font-size: 1rem;
             cursor: pointer;
             border-radius: 5px;
             border: 1px solid var(--border-color);
-            background: transparent;
+            background: var(--bg-color);
             color: var(--text-color);
         }
     </style>
@@ -57,28 +63,47 @@
 <body>
 
     <div id="clock">00:00:00</div>
-    <button id="modeToggle">Switch to Dark Mode</button>
+
+    <div class="controls">
+        <select id="timezoneSelector">
+            <option value="local">My Local Time</option>
+            <option value="UTC">UTC (Universal)</option>
+            <option value="America/New_York">New York (EST)</option>
+            <option value="Europe/London">London (GMT)</option>
+            <option value="Asia/Tokyo">Tokyo (JST)</option>
+            <option value="Australia/Sydney">Sydney (AEST)</option>
+        </select>
+
+        <button id="modeToggle">Switch to Dark Mode</button>
+    </div>
 
     <script>
-        // Clock Logic
+        const clockElement = document.getElementById('clock');
+        const timezoneSelector = document.getElementById('timezoneSelector');
+        const btn = document.getElementById('modeToggle');
+
         function updateClock() {
             const now = new Date();
-            document.getElementById('clock').textContent = now.toLocaleTimeString();
+            const selectedZone = timezoneSelector.value;
+
+            let options = {};
+            if (selectedZone !== "local") {
+                options = { timeZone: selectedZone };
+            }
+
+            clockElement.textContent = now.toLocaleTimeString('en-US', options);
         }
+
+        // Update the clock every second
         setInterval(updateClock, 1000);
         updateClock();
 
-        // Mode Toggle Logic
-        const btn = document.getElementById('modeToggle');
+        // Dark Mode Toggle Logic
         btn.addEventListener('click', () => {
             document.body.classList.toggle('dark-mode');
-            
-            // Update button text based on the current mode
-            if (document.body.classList.contains('dark-mode')) {
-                btn.textContent = "Switch to Light Mode";
-            } else {
-                btn.textContent = "Switch to Dark Mode";
-            }
+            btn.textContent = document.body.classList.contains('dark-mode') 
+                ? "Switch to Light Mode" 
+                : "Switch to Dark Mode";
         });
     </script>
 </body>
