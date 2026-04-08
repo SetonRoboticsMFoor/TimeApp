@@ -4,73 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ultimate Theme Clock</title>
-    <style>
-        /* --- THEME DEFINITIONS --- */
-        :root { --bg: #f4f4f4; --text: #222; --border: #444; --glow: none; --accent: #007bff; }
-        
-        .theme-cyberpunk { --bg: #0b0e14; --text: #00ffcc; --border: #ff00ff; --glow: 0 0 20px #ff00ff; --accent: #00ffcc; }
-        .theme-sunset { --bg: #2d1b33; --text: #ff7e5f; --border: #feb47b; --glow: 0 0 15px #ff7e5f; --accent: #feb47b; }
-        .theme-forest { --bg: #1b271b; --text: #9dff9d; --border: #2d5a27; --glow: 0 0 10px #2d5a27; --accent: #9dff9d; }
-        .theme-barbie { --bg: #fff0f6; --text: #ff3399; --border: #ff3399; --glow: 0 0 15px #ff85c0; --accent: #ff3399; }
-        .theme-ocean { --bg: #001f3f; --text: #7fdbff; --border: #0074d9; --glow: 0 0 20px #7fdbff; --accent: #ffffff; }
-        .theme-matrix { --bg: #000000; --text: #00ff00; --border: #003300; --glow: 0 0 10px #00ff00; --accent: #00ff00; }
-        .theme-lava { --bg: #220000; --text: #ff4500; --border: #ff0000; --glow: 0 0 20px #ff4500; --accent: #ffcc00; }
-        .theme-midnight { --bg: #000428; --text: #ffffff; --border: #004e92; --glow: 0 0 25px #004e92; --accent: #004e92; }
-        .theme-gold { --bg: #1a1a1a; --text: #d4af37; --border: #d4af37; --glow: 0 0 15px #d4af37; --accent: #ffffff; }
-        .theme-retro { --bg: #ffcc00; --text: #000000; --border: #ff6600; --glow: none; --accent: #ff6600; }
-
-        body {
-            background-color: var(--bg);
-            color: var(--text);
-            transition: all 0.5s ease;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            margin: 0;
-            font-family: 'Courier New', Courier, monospace;
-        }
-
-        #greeting { font-size: 1.5rem; margin-bottom: 10px; }
-
-        #clock {
-            font-size: 5rem;
-            font-weight: bold;
-            border: 4px solid var(--border);
-            padding: 20px 40px;
-            border-radius: 20px;
-            box-shadow: var(--glow);
-            text-align: center;
-        }
-
-        .controls {
-            margin-top: 30px;
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
-            width: 90%;
-            max-width: 450px;
-            padding: 20px;
-            background: rgba(128, 128, 128, 0.1);
-            border-radius: 15px;
-        }
-
-        .full-width { grid-column: span 2; }
-
-        select, button, input {
-            padding: 12px;
-            border-radius: 8px;
-            border: 1px solid var(--border);
-            background: var(--bg);
-            color: var(--text);
-            cursor: pointer;
-        }
-
-        #alarm-status { grid-column: span 2; text-align: center; font-size: 0.8rem; margin-top: 5px; }
-        
-        .fullscreen-btn { position: absolute; top: 20px; right: 20px; border: none; background: none; font-size: 1.5rem; }
-    </style>
+    
+    <link rel="stylesheet" href="style.css">
 </head>
 <body class="theme-cyberpunk">
 
@@ -111,56 +46,6 @@
         <div id="alarm-status"></div>
     </div>
 
-    <script>
-        let alarmTime = null;
-
-        function changeTheme() {
-            const theme = document.getElementById('themeSelector').value;
-            // Remove all possible themes first
-            document.body.className = '';
-            // Add the selected one
-            document.body.classList.add(theme);
-        }
-
-        function updateClock() {
-            const now = new Date();
-            const selectedZone = document.getElementById('timezoneSelector').value;
-            
-            // Greeting
-            const hours = now.getHours();
-            let greet = "Good Evening";
-            if (hours < 12) greet = "Good Morning";
-            else if (hours < 18) greet = "Good Afternoon";
-            document.getElementById('greeting').textContent = greet;
-
-            // Clock
-            let options = { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true };
-            if (selectedZone !== "local") options.timeZone = selectedZone;
-            document.getElementById('clock').textContent = now.toLocaleTimeString('en-US', options);
-
-            // Alarm Check
-            if (alarmTime) {
-                const current = now.getHours().toString().padStart(2, '0') + ":" + now.getMinutes().toString().padStart(2, '0');
-                if (current === alarmTime) {
-                    alert("⏰ ALARM!");
-                    alarmTime = null;
-                    document.getElementById('alarm-status').textContent = "";
-                }
-            }
-        }
-
-        function setAlarm() {
-            alarmTime = document.getElementById('alarmTime').value;
-            document.getElementById('alarm-status').textContent = alarmTime ? `Alarm: ${alarmTime}` : "";
-        }
-
-        function toggleFullscreen() {
-            if (!document.fullscreenElement) document.documentElement.requestFullscreen();
-            else document.exitFullscreen();
-        }
-
-        setInterval(updateClock, 1000);
-        updateClock();
-    </script>
+    <script src="script.js"></script>
 </body>
 </html>
