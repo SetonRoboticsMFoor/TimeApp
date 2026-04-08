@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>US World Clock</title>
+    <title>Pro Clock Dashboard</title>
     <style>
         :root {
             --bg-color: #f4f4f4;
@@ -11,14 +11,16 @@
             --border-color: #444444;
             --glow: none;
             --control-bg: #ffffff;
+            --accent: #007bff;
         }
 
         body.dark-mode {
             --bg-color: #101015; 
-            --text-color: #a0eaff; /* Light Blue */
+            --text-color: #a0eaff; 
             --border-color: #a0eaff; 
-            --glow: 0 0 25px rgba(160, 234, 255, 0.7); /* Light Blue Glow */
+            --glow: 0 0 25px rgba(160, 234, 255, 0.6);
             --control-bg: #1a1a22;
+            --accent: #a0eaff;
         }
 
         body {
@@ -29,130 +31,163 @@
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            height: 100vh;
+            min-height: 100vh;
             margin: 0;
-            font-family: 'Courier New', Courier, monospace;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        #greeting {
+            font-size: 1.5rem;
+            margin-bottom: 10px;
+            font-weight: 300;
         }
 
         #clock-container {
             text-align: center;
-            margin-bottom: 30px;
+            margin-bottom: 20px;
         }
 
         #clock {
-            font-size: 5rem;
+            font-size: 6rem;
             font-weight: bold;
             border: 3px solid var(--border-color);
-            padding: 25px 40px;
-            border-radius: 15px;
+            padding: 20px 40px;
+            border-radius: 20px;
             box-shadow: var(--glow);
-            margin-bottom: 10px;
-            display: inline-block;
-        }
-
-        #zone-display {
-            font-size: 1.2rem;
-            opacity: 0.8;
-            margin-top: 10px;
+            font-family: 'Courier New', Courier, monospace;
         }
 
         .controls {
-            display: flex;
-            gap: 15px;
-            flex-direction: column;
-            align-items: center;
-            width: 320px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            width: 90%;
+            max-width: 500px;
+            background: var(--control-bg);
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
         }
 
-        select, button {
-            width: 100%;
-            padding: 12px;
-            font-size: 1rem;
-            cursor: pointer;
+        .full-width { grid-column: span 2; }
+
+        select, button, input {
+            padding: 10px;
             border-radius: 8px;
-            border: 1px solid var(--border-color);
+            border: 1px solid #ccc;
             background: var(--control-bg);
             color: var(--text-color);
-            font-family: inherit;
+            font-size: 0.9rem;
+        }
+
+        #alarm-status {
+            grid-column: span 2;
+            text-align: center;
+            font-size: 0.9rem;
+            color: var(--accent);
+            height: 20px;
+        }
+
+        .fullscreen-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            width: auto;
+            cursor: pointer;
         }
 
         @media (max-width: 600px) {
-            #clock { font-size: 3rem; }
+            #clock { font-size: 3.5rem; }
+            .controls { grid-template-columns: 1fr; }
+            .full-width { grid-column: span 1; }
         }
     </style>
 </head>
 <body class="dark-mode">
 
+    <button class="fullscreen-btn" onclick="toggleFullscreen()">📺 Fullscreen</button>
+
+    <div id="greeting">Good Morning</div>
+
     <div id="clock-container">
         <div id="clock">00:00:00</div>
-        <div id="zone-display">My Local Time</div>
+        <div id="zone-display">Local Time</div>
     </div>
 
     <div class="controls">
-        <select id="timezoneSelector">
+        <select id="timezoneSelector" class="full-width">
             <option value="local">My Local Time</option>
-            <optgroup label="US Standard Time Zones">
-                <option value="America/New_York">Eastern Time (ET)</option>
-                <option value="America/Chicago">Central Time (CT)</option>
-                <option value="America/Denver">Mountain Time (MT)</option>
-                <option value="America/Phoenix">Mountain Time (AZ - No DST)</option>
-                <option value="America/Los_Angeles">Pacific Time (PT)</option>
-            </optgroup>
-            <optgroup label="US Non-Contiguous Zones">
-                <option value="America/Anchorage">Alaska Time (AKT)</option>
-                <option value="Pacific/Honolulu">Hawaii Standard Time (HST)</option>
-            </optgroup>
+            <option value="America/New_York">Eastern Time</option>
+            <option value="America/Chicago">Central Time</option>
+            <option value="America/Denver">Mountain Time</option>
+            <option value="America/Los_Angeles">Pacific Time</option>
+            <option value="UTC">UTC (Universal)</option>
         </select>
 
-        <button id="modeToggle">Switch to Light Mode</button>
+        <input type="time" id="alarmTime">
+        <button onclick="setAlarm()">Set Alarm</button>
+        <div id="alarm-status"></div>
+
+        <button id="modeToggle">Toggle Theme</button>
+        <button onclick="location.reload()">Refresh App</button>
     </div>
 
     <script>
-        const clockElement = document.getElementById('clock');
-        const zoneDisplayElement = document.getElementById('zone-display');
-        const timezoneSelector = document.getElementById('timezoneSelector');
-        const btn = document.getElementById('modeToggle');
+        let alarmTime = null;
 
         function updateClock() {
             const now = new Date();
-            const selectedZone = timezoneSelector.value;
-
-            let timeOptions = {
-                hour: '2-digit',
-                minute: '2-digit',
-                second: '2-digit',
-                hour12: true 
-            };
+            const selectedZone = document.getElementById('timezoneSelector').value;
             
-            if (selectedZone !== "local") {
-                timeOptions.timeZone = selectedZone;
-            }
+            // 1. Update Greeting
+            const hours = now.getHours();
+            let greeting = "Good Evening";
+            if (hours < 12) greeting = "Good Morning";
+            else if (hours < 18) greeting = "Good Afternoon";
+            document.getElementById('greeting').textContent = greeting;
 
-            clockElement.textContent = now.toLocaleTimeString('en-US', timeOptions);
+            // 2. Update Clock
+            let options = { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true };
+            if (selectedZone !== "local") options.timeZone = selectedZone;
+            
+            const timeString = now.toLocaleTimeString('en-US', options);
+            document.getElementById('clock').textContent = timeString;
 
-            // Update the display name of the zone
-            if (selectedZone === "local") {
-                zoneDisplayElement.textContent = "My Local Time";
-            } else {
-                const zoneNameOptions = { timeZone: selectedZone, timeZoneName: 'long' };
-                const formatter = new Intl.DateTimeFormat('en-US', zoneNameOptions);
-                const parts = formatter.formatToParts(now);
-                const tzName = parts.find(part => part.type === 'timeZoneName').value;
-                zoneDisplayElement.textContent = tzName;
+            // 3. Check Alarm
+            if (alarmTime) {
+                const currentFormatted = now.getHours().toString().padStart(2, '0') + ":" + 
+                                       now.getMinutes().toString().padStart(2, '0');
+                if (currentFormatted === alarmTime) {
+                    alert("⏰ ALARM! Time to wake up!");
+                    alarmTime = null; // Reset alarm
+                    document.getElementById('alarm-status').textContent = "";
+                }
             }
         }
 
+        function setAlarm() {
+            const input = document.getElementById('alarmTime').value;
+            if (input) {
+                alarmTime = input;
+                document.getElementById('alarm-status').textContent = `Alarm set for ${input}`;
+            }
+        }
+
+        function toggleFullscreen() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen();
+            } else {
+                document.exitFullscreen();
+            }
+        }
+
+        // Dark Mode
+        document.getElementById('modeToggle').addEventListener('click', () => {
+            document.body.classList.toggle('dark-mode');
+        });
+
         setInterval(updateClock, 1000);
         updateClock();
-
-        timezoneSelector.addEventListener('change', updateClock);
-
-        btn.addEventListener('click', () => {
-            document.body.classList.toggle('dark-mode');
-            btn.textContent = document.body.classList.contains('dark-mode') 
-                ? "Switch to Light Mode" 
-                : "Switch to Dark Mode";
-        });
     </script>
 </body>
 </html>
